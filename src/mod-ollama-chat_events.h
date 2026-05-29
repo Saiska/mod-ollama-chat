@@ -83,6 +83,44 @@ public:
     void OnGameObjectUse(Player* player, GameObject* go);
 };
 
+// additional event-chatter hooks
+class ChatOnZone : public PlayerScript
+{
+public:
+    ChatOnZone();
+    void OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newArea) override;
+};
+
+class ChatOnKilledByCreature : public PlayerScript
+{
+public:
+    ChatOnKilledByCreature();
+    void OnPlayerKilledByCreature(Creature* killer, Player* killed) override;
+};
+
+class ChatOnReputationRank : public PlayerScript
+{
+public:
+    ChatOnReputationRank();
+    void OnPlayerReputationRankChange(Player* player, uint32 factionID, ReputationRank /*newRank*/,
+                                      ReputationRank /*oldRank*/, bool increased) override;
+};
+
+class ChatOnResurrect : public PlayerScript
+{
+public:
+    ChatOnResurrect();
+    void OnPlayerResurrect(Player* player, float restorePercent, bool& applySickness) override;
+};
+
+class ChatOnCombat : public PlayerScript
+{
+public:
+    ChatOnCombat();
+    void OnPlayerEnterCombat(Player* player, Unit* enemy) override;
+    void OnPlayerLeaveCombat(Player* player) override;
+};
+
 // Guild membership events. AzerothCore exposes these on GuildScript (NOT PlayerScript):
 // OnAddMember / OnRemoveMember cover join/leave (and hand us the Guild* + Player* directly),
 // while OnEvent carries promote/demote via the guild event-log type.

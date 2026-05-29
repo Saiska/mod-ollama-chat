@@ -640,6 +640,37 @@ OllamaChat.EventTypeAchievement_Chance = 75
 OllamaChat.EventTypeUsedObject = used object
 OllamaChat.EventTypeUsedObject_Chance = 10
 
+# --------------------------------------------
+# ADDITIONAL EVENT HOOKS — all default 0 (off / opt-in)
+# Each event has a type string (the prompt label) and split chances:
+#   PlayerEventChance.<Event> = chance (0-100) when the actor is a real player
+#   BotEventChance.<Event>    = chance (0-100) when the actor is a bot
+# --------------------------------------------
+
+OllamaChat.EventTypeEnteredZone      = entered zone
+OllamaChat.PlayerEventChance.EnteredZone = 0
+OllamaChat.BotEventChance.EnteredZone    = 0
+
+OllamaChat.EventTypeKilledByCreature = killed by creature
+OllamaChat.PlayerEventChance.KilledByCreature = 0
+OllamaChat.BotEventChance.KilledByCreature    = 0
+
+OllamaChat.EventTypeReputationRank   = reputation rank
+OllamaChat.PlayerEventChance.ReputationRank = 0
+OllamaChat.BotEventChance.ReputationRank    = 0
+
+OllamaChat.EventTypeResurrected      = resurrected
+OllamaChat.PlayerEventChance.Resurrected = 0
+OllamaChat.BotEventChance.Resurrected    = 0
+
+OllamaChat.EventTypeEnteredCombat    = entered combat
+OllamaChat.PlayerEventChance.EnteredCombat = 0
+OllamaChat.BotEventChance.EnteredCombat    = 0
+
+OllamaChat.EventTypeLeftCombat       = left combat
+OllamaChat.PlayerEventChance.LeftCombat = 0
+OllamaChat.BotEventChance.LeftCombat    = 0
+
 # OllamaChat.EventCooldownTime
 #     Description: The cooldown time (in seconds) for bots to respond to an event.
 #     Default:     10
