@@ -47,6 +47,11 @@ extern uint32_t    g_OllamaNumPredict;
 extern float       g_OllamaTemperature;
 extern float       g_OllamaTopP;
 extern float       g_OllamaRepeatPenalty;
+// additional Ollama sampling parameters (0 / 0.0 = unset, not sent -> model default)
+extern uint32_t    g_OllamaTopK;
+extern float       g_OllamaMinP;
+extern float       g_OllamaPresencePenalty;
+extern float       g_OllamaFrequencyPenalty;
 extern uint32_t    g_OllamaNumCtx;
 extern uint32_t    g_OllamaNumThreads;
 extern std::string g_OllamaStop;

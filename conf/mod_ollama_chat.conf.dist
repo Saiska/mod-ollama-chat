@@ -84,6 +84,34 @@ OllamaChat.TopP = 0.95
 #     Default:     1.1
 OllamaChat.RepeatPenalty = 1.1
 
+# OllamaChat.TopK
+#     Description: Limits sampling to the top K most likely tokens. Higher = more diverse.
+#                  0 = unset (uses the model default, typically 40). Typical: 40.
+#     Example:     OllamaChat.TopK = 40
+#     Default:     0
+OllamaChat.TopK = 0
+
+# OllamaChat.MinP
+#     Description: Min-p sampling: keep tokens with probability >= MinP * (top token prob).
+#                  An alternative to TopP. 0.0 = unset (model default). Typical: 0.05.
+#     Example:     OllamaChat.MinP = 0.05
+#     Default:     0.0
+OllamaChat.MinP = 0.0
+
+# OllamaChat.PresencePenalty
+#     Description: Penalizes tokens that have already appeared, encouraging new topics.
+#                  0.0 = unset (model default / no penalty). Typical: 0.1-0.5.
+#     Example:     OllamaChat.PresencePenalty = 0.2
+#     Default:     0.0
+OllamaChat.PresencePenalty = 0.0
+
+# OllamaChat.FrequencyPenalty
+#     Description: Penalizes tokens proportionally to how often they have appeared,
+#                  reducing repetition. 0.0 = unset (model default / no penalty). Typical: 0.1-0.5.
+#     Example:     OllamaChat.FrequencyPenalty = 0.2
+#     Default:     0.0
+OllamaChat.FrequencyPenalty = 0.0
+
 # OllamaChat.NumCtx
 #     Description: Maximum context length (in tokens) sent to the model.
 #                  0 = model default. Use a value only if you want to restrict or expand context.

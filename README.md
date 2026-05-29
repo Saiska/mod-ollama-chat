@@ -194,6 +194,23 @@ This should return a JSON response listing available models. If you get a connec
 
 > For a complete list of all available configuration options with comments and defaults, see `mod-ollama-chat.conf.dist` included in this repository.
 
+### Key Inference / Sampling Parameters
+
+These options control how the Ollama model generates text. All are set in `mod-ollama-chat.conf`:
+
+| Option | Default | Description |
+|---|---|---|
+| `OllamaChat.NumPredict` | `40` | Max tokens to generate. `0` = unlimited. |
+| `OllamaChat.Temperature` | `0.8` | Output randomness. Lower = more focused; higher = more creative. |
+| `OllamaChat.TopP` | `0.95` | Nucleus sampling threshold. |
+| `OllamaChat.RepeatPenalty` | `1.1` | Penalizes repeated tokens. `1.0` = no penalty. |
+| `OllamaChat.TopK` | `0` | Limits sampling to the top K tokens. `0` = unset (model default, typically 40). |
+| `OllamaChat.MinP` | `0.0` | Min-p sampling: keeps tokens with prob >= MinP × top-token prob. `0.0` = unset (model default). Alternative to TopP. |
+| `OllamaChat.PresencePenalty` | `0.0` | Penalizes tokens that have already appeared, encouraging new topics. `0.0` = unset (model default / no penalty). |
+| `OllamaChat.FrequencyPenalty` | `0.0` | Penalizes tokens proportionally to how often they have appeared, reducing repetition. `0.0` = unset (model default / no penalty). |
+
+These four parameters (`TopK`, `MinP`, `PresencePenalty`, `FrequencyPenalty`) default to `0` / `0.0`, which means they are **not sent** to Ollama and the model uses its own defaults. Behavior is unchanged unless an operator explicitly sets a non-zero value.
+
 ## Text Commands
 
 The module provides several in-game text commands for administrators (Game Masters) to manage and monitor the Ollama chat functionality. All commands require **SEC_ADMINISTRATOR** security level (GM level 3 or higher).
