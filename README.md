@@ -54,7 +54,7 @@
   Reload the module’s config and personality packs in-game or from the server console, without restarting.
 
 - **Event-Based Chatter:**  
-  Player bots now comment on key in-game events such as quest completion, rare loot, deaths, PvP kills, leveling up, duels, learning spells, and achievements. Remarks are context-aware, immersive, and personality-driven, making the world feel much more alive.
+  Player bots now comment on key in-game events such as quest completion, rare loot, deaths, PvP kills, leveling up, duels, learning spells, and achievements. Remarks are context-aware, immersive, and personality-driven, making the world feel much more alive. Additional opt-in events include entering zones, being slain by creatures, reputation rank-ups, resurrecting, and entering or leaving combat. Each of these new events supports separate player-vs-bot trigger chances (`PlayerEventChance.<Event>` / `BotEventChance.<Event>`) and defaults to off (0) to avoid spam.
 
 - **Party-Only Bot Responses:**  
   When enabled, bots will only respond to real player messages and events when they are in the same non-raid party. This helps reduce chat spam while maintaining full bot-to-bot communication within parties for immersive group interactions.

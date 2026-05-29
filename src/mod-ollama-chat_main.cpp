@@ -23,5 +23,10 @@ void Addmod_ollama_chatScripts()
     new ChatOnLevelUp();
     new ChatOnAchievement();
     new ChatOnGameObjectUse();
+    new ChatOnZone();
+    new ChatOnKilledByCreature();
+    new ChatOnReputationRank();
+    new ChatOnResurrect();
+    new ChatOnCombat();
     new OllamaChatConfigCommand();
 }
