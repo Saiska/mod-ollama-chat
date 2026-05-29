@@ -23,5 +23,7 @@ void Addmod_ollama_chatScripts()
     new ChatOnLevelUp();
     new ChatOnAchievement();
     new ChatOnGameObjectUse();
+    new ChatOnGuildEvent();
+    new ChatOnLogin();
     new OllamaChatConfigCommand();
 }

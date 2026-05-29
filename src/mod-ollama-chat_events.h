@@ -8,7 +8,9 @@
 class OllamaBotEventChatter
 {
 public:
-    void DispatchGameEvent(Player* source, std::string type, std::string detail);
+    // guildOverride lets guild hooks supply the guild explicitly, so dispatch does not depend on
+    // source->GetGuild() (which is unreliable while a member is being added/removed).
+    void DispatchGameEvent(Player* source, std::string type, std::string detail, Guild* guildOverride = nullptr);
     void QueueEvent(Player* bot, std::string type, std::string detail, std::string actorName, bool isGuildEvent = false);
     std::string BuildPrompt(Player* bot, std::string promptTemplate, std::string eventType, std::string eventDetail, std::string actorName);
 };
@@ -81,14 +83,25 @@ public:
     void OnGameObjectUse(Player* player, GameObject* go);
 };
 
-class ChatOnGuildMemberChange : public PlayerScript
+// Guild membership events. AzerothCore exposes these on GuildScript (NOT PlayerScript):
+// OnAddMember / OnRemoveMember cover join/leave (and hand us the Guild* + Player* directly),
+// while OnEvent carries promote/demote via the guild event-log type.
+class ChatOnGuildEvent : public GuildScript
 {
 public:
-    ChatOnGuildMemberChange();
-    void OnGuildMemberJoin(Player* player, Guild* guild);
-    void OnGuildMemberLeave(Player* player, Guild* guild);
-    void OnGuildMemberRankChange(Player* player, Guild* guild, uint8 oldRank, uint8 newRank);
-    void OnGuildMemberLogin(Player* player, Guild* guild);
+    ChatOnGuildEvent();
+    void OnAddMember(Guild* guild, Player* player, uint8& plRank) override;
+    void OnRemoveMember(Guild* guild, Player* player, bool isDisbanding, bool isKicked) override;
+    void OnEvent(Guild* guild, uint8 eventType, ObjectGuid::LowType playerGuid1, ObjectGuid::LowType playerGuid2,
+                 uint8 newRank) override;
+};
+
+// There is no guild-login hook; catch logins on PlayerScript and filter to guilded real players.
+class ChatOnLogin : public PlayerScript
+{
+public:
+    ChatOnLogin();
+    void OnPlayerLogin(Player* player) override;
 };
 
 
