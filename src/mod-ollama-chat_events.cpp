@@ -16,6 +16,10 @@
 #include "SpellMgr.h"
 #include "AchievementMgr.h"
 #include "GameObject.h"
+#include "Creature.h"
+#include "DBCStores.h"
+#include "World.h"
+#include "SharedDefines.h"
 #include <vector>
 #include <thread>
 #include <random>
@@ -197,6 +201,30 @@ void OllamaBotEventChatter::DispatchGameEvent(Player* source, std::string type, 
         eventChance = g_EventTypeAchievement_Chance;
     } else if (type == g_EventTypeUsedObject) {
         eventChance = g_EventTypeUsedObject_Chance;
+    }
+    else if (type == g_EventTypeEnteredZone)
+    {
+        eventChance = isSourceBot ? g_BotEventChance_EnteredZone : g_PlayerEventChance_EnteredZone;
+    }
+    else if (type == g_EventTypeKilledByCreature)
+    {
+        eventChance = isSourceBot ? g_BotEventChance_KilledByCreature : g_PlayerEventChance_KilledByCreature;
+    }
+    else if (type == g_EventTypeReputationRank)
+    {
+        eventChance = isSourceBot ? g_BotEventChance_ReputationRank : g_PlayerEventChance_ReputationRank;
+    }
+    else if (type == g_EventTypeResurrected)
+    {
+        eventChance = isSourceBot ? g_BotEventChance_Resurrected : g_PlayerEventChance_Resurrected;
+    }
+    else if (type == g_EventTypeEnteredCombat)
+    {
+        eventChance = isSourceBot ? g_BotEventChance_EnteredCombat : g_PlayerEventChance_EnteredCombat;
+    }
+    else if (type == g_EventTypeLeftCombat)
+    {
+        eventChance = isSourceBot ? g_BotEventChance_LeftCombat : g_PlayerEventChance_LeftCombat;
     }
 
     // Add chance checks for all GuildEventType entries
@@ -661,6 +689,77 @@ void ChatOnGameObjectUse::OnGameObjectUse(Player* player, GameObject* go)
         return;
     }
     eventChatter.DispatchGameEvent(player, g_EventTypeUsedObject, go->GetGOInfo()->name);
+}
+
+// additional event-chatter hooks
+
+ChatOnZone::ChatOnZone() : PlayerScript("ChatOnZone") {}
+
+void ChatOnZone::OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 /*newArea*/)
+{
+    if (!player)
+        return;
+    std::string zoneName;
+    if (AreaTableEntry const* zone = sAreaTableStore.LookupEntry(newZone))
+    {
+        zoneName = zone->area_name[sWorld->GetDefaultDbcLocale()];
+        if (zoneName.empty())
+            zoneName = zone->area_name[LOCALE_enUS];
+    }
+    eventChatter.DispatchGameEvent(player, g_EventTypeEnteredZone, zoneName);
+}
+
+ChatOnKilledByCreature::ChatOnKilledByCreature() : PlayerScript("ChatOnKilledByCreature") {}
+
+void ChatOnKilledByCreature::OnPlayerKilledByCreature(Creature* killer, Player* killed)
+{
+    if (!killer || !killed)
+        return;
+    eventChatter.DispatchGameEvent(killed, g_EventTypeKilledByCreature, killer->GetName());
+}
+
+ChatOnReputationRank::ChatOnReputationRank() : PlayerScript("ChatOnReputationRank") {}
+
+void ChatOnReputationRank::OnPlayerReputationRankChange(Player* player, uint32 factionID,
+                                                        ReputationRank /*newRank*/,
+                                                        ReputationRank /*oldRank*/, bool increased)
+{
+    if (!player || !increased) // only celebrate rank-ups, not losses
+        return;
+    std::string factionName;
+    if (FactionEntry const* faction = sFactionStore.LookupEntry(factionID))
+    {
+        factionName = faction->name[sWorld->GetDefaultDbcLocale()];
+        if (factionName.empty())
+            factionName = faction->name[LOCALE_enUS];
+    }
+    eventChatter.DispatchGameEvent(player, g_EventTypeReputationRank, factionName);
+}
+
+ChatOnResurrect::ChatOnResurrect() : PlayerScript("ChatOnResurrect") {}
+
+void ChatOnResurrect::OnPlayerResurrect(Player* player, float /*restorePercent*/, bool& /*applySickness*/)
+{
+    if (!player)
+        return;
+    eventChatter.DispatchGameEvent(player, g_EventTypeResurrected, "");
+}
+
+ChatOnCombat::ChatOnCombat() : PlayerScript("ChatOnCombat") {}
+
+void ChatOnCombat::OnPlayerEnterCombat(Player* player, Unit* enemy)
+{
+    if (!player)
+        return;
+    std::string enemyName = enemy ? enemy->GetName() : "";
+    eventChatter.DispatchGameEvent(player, g_EventTypeEnteredCombat, enemyName);
+}
+
+void ChatOnCombat::OnPlayerLeaveCombat(Player* player)
+{
+    if (!player)
+        return;
+    eventChatter.DispatchGameEvent(player, g_EventTypeLeftCombat, "");
 }
 
 ChatOnGuildMemberChange::ChatOnGuildMemberChange() : PlayerScript("ChatOnGuildMemberChange") {}
