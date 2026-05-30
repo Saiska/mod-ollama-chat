@@ -458,7 +458,7 @@ OllamaChat.ChatHistoryFooterTemplate = "NEW MESSAGE from {player_name}: {player_
 # OllamaChat.ChatBotSnapshotTemplate
 #   Description: The template string for the context snapshot of the bot's surroundings and status.
 #   Placeholders (named): {combat} {group} {spells} {quests} {los} {players}
-OllamaChat.ChatBotSnapshotTemplate = "\n[Your present circumstance (true things): weave any that fit naturally and briefly into your reply as a person would, never as a list, never quoting numbers, levels, ranks, or game terms.] {combat} {quests} {group} {los} {players} {spells}"
+OllamaChat.ChatBotSnapshotTemplate = " [Your present circumstance (true things): weave any that fit naturally and briefly into your reply as a person would, never as a list, never quoting numbers, levels, ranks, or game terms.] {combat} {quests} {group} {los} {players} {spells}"
 OllamaChat.SnapshotMaxQuests    = 3
 OllamaChat.SnapshotMaxGroup     = 4
 OllamaChat.SnapshotMaxCreatures = 2
