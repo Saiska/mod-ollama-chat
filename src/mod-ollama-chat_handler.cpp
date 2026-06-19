@@ -1145,7 +1145,22 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
              
     PlayerbotAI* senderAI = PlayerbotsMgr::instance().GetPlayerbotAI(player);
     bool senderIsBot = (senderAI && senderAI->IsBotAI());
-    
+
+    // PERF (tick-spike-continent-mapupdate): build the in-world real-player audience ONCE.
+    // Every branch below requires a real player to hear before a bot may reply (module invariant).
+    // Re-deriving this per candidate bot was O(bots^2) per say on the world thread (the
+    // say::low-health ~1s continent Map::Update balloon). Sibling of the random-chatter-tick-spike
+    // fix. Mirrors HandleRandomChatter's realPlayers pass.
+    std::vector<Player*> realPlayers;
+    for (auto const& realItr : ObjectAccessor::GetPlayers())
+    {
+        Player* rp = realItr.second;
+        if (rp && rp->IsInWorld() && !PlayerbotsMgr::instance().GetPlayerbotAI(rp))
+            realPlayers.push_back(rp);
+    }
+    if (realPlayers.empty())
+        return;  // no audience -> no bot can ever reply; skip the whole eligibility sweep
+
     std::vector<Player*> eligibleBots;
     
     // Handle different chat sources differently
@@ -1207,6 +1222,18 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
             return;
         }
         
+        bool channelHasRealPlayer = false;
+        for (Player* rp : realPlayers)
+        {
+            if (rp->IsInChannel(channel))
+            {
+                channelHasRealPlayer = true;
+                break;
+            }
+        }
+        if (!channelHasRealPlayer)
+            return;  // channel has no real listener -> no bot reply
+
         // For channel chat, simply find all bots in the same zone as the player
         auto const& allPlayers = ObjectAccessor::GetPlayers();
         for (auto const& itr : allPlayers)
@@ -1275,31 +1302,6 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
                 continue; // SKIP this bot - not in the channel
             }
             
-            // REAL PLAYER CHECK: Channel must have at least one real player
-            bool hasRealPlayerInChannel = false;
-            for (auto const& playerItr : allPlayers)
-            {
-                Player* potentialRealPlayer = playerItr.second;
-                if (potentialRealPlayer && potentialRealPlayer->IsInChannel(channel))
-                {
-                    PlayerbotAI* realPlayerAI = PlayerbotsMgr::instance().GetPlayerbotAI(potentialRealPlayer);
-                    if (!realPlayerAI || !realPlayerAI->IsBotAI())
-                    {
-                        hasRealPlayerInChannel = true;
-                        break;
-                    }
-                }
-            }
-            
-            if (!hasRealPlayerInChannel)
-            {
-                if(g_DebugEnabled)
-                {
-                    //LOG_INFO("server.loading", "[Ollama Chat] Bot {} skipped - no real players in channel '{}'", candidate->GetName(), channel->GetName());
-                }
-                continue;
-            }
-            
             // ONLY add bots that passed ALL verifications
             eligibleBots.push_back(candidate);
             if(g_DebugEnabled)
@@ -1333,17 +1335,12 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
                         {
                             // Check if any real player is online in this guild
                             bool hasRealPlayerInGuild = false;
-                            for (auto const& guildPlayerItr : allPlayers)
+                            for (Player* guildMember : realPlayers)
                             {
-                                Player* guildMember = guildPlayerItr.second;
-                                if (guildMember && guildMember->GetGuildId() == candidate->GetGuildId())
+                                if (guildMember->GetGuildId() == candidate->GetGuildId())
                                 {
-                                    PlayerbotAI* memberAI = PlayerbotsMgr::instance().GetPlayerbotAI(guildMember);
-                                    if (!memberAI || !memberAI->IsBotAI())
-                                    {
-                                        hasRealPlayerInGuild = true;
-                                        break;
-                                    }
+                                    hasRealPlayerInGuild = true;
+                                    break;
                                 }
                             }
                             if (!hasRealPlayerInGuild)
@@ -1382,20 +1379,12 @@ void PlayerBotChatHandler::ProcessChat(Player* player, uint32_t /*type*/, uint32
                         
                         if (candidate->IsInWorld() && threshold > 0.0f)
                         {
-                            for (auto const& nearbyPlayerItr : allPlayers)
+                            for (Player* nearbyPlayer : realPlayers)
                             {
-                                Player* nearbyPlayer = nearbyPlayerItr.second;
-                                if (nearbyPlayer && nearbyPlayer->IsInWorld())
+                                if (candidate->GetDistance(nearbyPlayer) <= threshold)
                                 {
-                                    PlayerbotAI* nearbyAI = PlayerbotsMgr::instance().GetPlayerbotAI(nearbyPlayer);
-                                    if (!nearbyAI || !nearbyAI->IsBotAI())
-                                    {
-                                        if (candidate->GetDistance(nearbyPlayer) <= threshold)
-                                        {
-                                            hasRealPlayerNearby = true;
-                                            break;
-                                        }
-                                    }
+                                    hasRealPlayerNearby = true;
+                                    break;
                                 }
                             }
                         }
