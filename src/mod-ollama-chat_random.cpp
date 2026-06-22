@@ -290,13 +290,25 @@ void OllamaBotRandomChatter::HandleRandomChatter()
     auto const& allPlayers = ObjectAccessor::GetPlayers();
 
     std::vector<Player*> realPlayers;
+    std::unordered_set<uint32> guildsWithRealPlayer;
     for (auto const& itr : allPlayers)
     {
         Player* player = itr.second;
         if (!player->IsInWorld()) continue;
         if (!PlayerbotsMgr::instance().GetPlayerbotAI(player))
+        {
             realPlayers.push_back(player);
+            if (Guild* g = player->GetGuild())
+                guildsWithRealPlayer.insert(g->GetId());
+        }
     }
+
+    // No real player online anywhere -> no bot can be heard on any channel
+    // (proximity, guild, and zone audibility all require an in-world real
+    // player). The per-bot loop below would walk every bot and `continue` on
+    // each, producing nothing. This early-out is an exact no-op equivalent.
+    if (realPlayers.empty())
+        return;
 
     std::unordered_set<uint64_t> processedBotsThisTick;
 
@@ -310,7 +322,9 @@ void OllamaBotRandomChatter::HandleRandomChatter()
 
         // If bot is in a guild, check if any real player from their guild is online
         Guild* guild = bot->GetGuild();
-        bool hasRealPlayerInGuild = RealPlayerCanHear(bot, ChannelCategory::Guild);
+        // Hoisted: guildsWithRealPlayer is computed once per tick above and is
+        // exactly equivalent to RealPlayerCanHear(bot, Guild) (O(bots) -> O(1)).
+        bool hasRealPlayerInGuild = guild && guildsWithRealPlayer.count(guild->GetId());
 
         // For non-guild random chatter, require proximity to a real player
         bool nearRealPlayer = false;
